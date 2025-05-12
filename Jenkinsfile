@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKER_HUB_CREDENTIALS = credentials('dockerhub')
-        DOCKER_IMAGE = 'glossimute/teedy-app'
+        DOCKER_IMAGE = 'glossimute/teedy'
         DOCKER_TAG = "${env.BUILD_NUMBER}"
     }
 
