@@ -41,12 +41,24 @@ pipeline {
         stage('Run containers') {
             steps {
                 script {
-                    sh 'docker stop teedy-container-8081 || true'
-                    sh 'docker rm teedy-container-8081 || true'
-                    docker.image("${env.DOCKER_IMAGE}:${env.DOCKER_TAG}")
-                          .run('--name teedy-container-8081 -d -p 8081:8080')
+                    // 停止并删除旧容器（防止端口冲突）
+            def ports = [8082, 8083, 8084]
+            for (p in ports) {
+                def name = "teedy-container-${p}"
+                sh "docker stop ${name} || true"
+                sh "docker rm ${name} || true"
+            }
 
-                    sh 'docker ps --filter "name=teedy-container"'
+            // 启动新的三个容器
+            for (p in ports) {
+                def name = "teedy-container-${p}"
+                sh """
+                    docker run -d --name ${name} -p ${p}:8080 ${env.DOCKER_IMAGE}:${env.DOCKER_TAG}
+                """
+            }
+
+            // 查看容器状态
+            sh 'docker ps --filter "name=teedy-container"'
                 }
             }
         }
