@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        DOCKER_HUB_CREDENTIALS = credentials('07d085b0-95d5-460a-850a-d43651718ba9') // Docker Hub credentials ID store in Jenkins
+        DOCKER_HUB_CREDENTIALS = credentials('dockerhub') // Docker Hub credentials ID store in Jenkins
         DOCKER_IMAGE = 'glossimute/teedy'
         DOCKER_TAG = "${env.BUILD_NUMBER}"
     }
