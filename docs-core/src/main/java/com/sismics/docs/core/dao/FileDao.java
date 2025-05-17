@@ -161,7 +161,7 @@ public class FileDao {
         fileDb.setContent(file.getContent());
         fileDb.setOrder(file.getOrder());
         fileDb.setMimeType(file.getMimeType());
-        fileDb.setVersionId(file.getVersionId());
+        fileDb.setVersionId(file.getVersionId()+1);
         fileDb.setLatestVersion(file.isLatestVersion());
         fileDb.setSize(file.getSize());
 

@@ -98,6 +98,10 @@ angular.module('docs').controller('FileModalView', function ($uibModalInstance, 
     }
   };
 
+  $scope.editFile = function () {
+    var fileId = $stateParams.fileId;
+    window.open('partial/docs/edit.html?fileId=' + fileId, '_blank');
+  };
   /**
    * Close the file preview.
    */

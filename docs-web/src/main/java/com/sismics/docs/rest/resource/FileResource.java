@@ -18,6 +18,7 @@ import com.sismics.docs.core.model.jpa.User;
 import com.sismics.docs.core.util.DirectoryUtil;
 import com.sismics.docs.core.util.EncryptionUtil;
 import com.sismics.docs.core.util.FileUtil;
+import com.sismics.docs.core.service.FileEditService;
 import com.sismics.rest.exception.ClientException;
 import com.sismics.rest.exception.ForbiddenClientException;
 import com.sismics.rest.exception.ServerException;
@@ -59,6 +60,11 @@ import java.util.zip.ZipOutputStream;
  */
 @Path("/file")
 public class FileResource extends BaseResource {
+    private final FileEditService fileEditService;
+
+    public FileResource() {
+        this.fileEditService = new FileEditService(new FileDao());
+    }
     /**
      * Add a file (with or without a document).
      *
@@ -541,7 +547,7 @@ public class FileResource extends BaseResource {
                 .add("status", "ok");
         return Response.ok().entity(response.build()).build();
     }
-    
+
     /**
      * Returns a file.
      *
@@ -570,7 +576,7 @@ public class FileResource extends BaseResource {
             @QueryParam("share") String shareId,
             @QueryParam("size") String size) {
         authenticate();
-        
+
         if (size != null && !Lists.newArrayList("web", "thumb", "content").contains(size)) {
             throw new ClientException("SizeError", "Size must be web, thumb or content");
         }
@@ -607,19 +613,19 @@ public class FileResource extends BaseResource {
             mimeType = file.getMimeType();
             decrypt = true; // Original files are encrypted
         }
-        
+
         // Stream the output and decrypt it if necessary
         StreamingOutput stream;
-        
+
         // A file is always encrypted by the creator of it
         User user = userDao.getById(file.getUserId());
-        
+
         // Write the decrypted file to the output
         try {
             InputStream fileInputStream = Files.newInputStream(storedFile);
             final InputStream responseInputStream = decrypt ?
                     EncryptionUtil.decryptInputStream(fileInputStream, user.getPrivateKey()) : fileInputStream;
-                    
+
             stream = outputStream -> {
                 try {
                     ByteStreams.copy(responseInputStream, outputStream);
@@ -651,6 +657,20 @@ public class FileResource extends BaseResource {
         return builder.build();
     }
 
+    @PUT
+    @Path("{id}/data")
+    @Consumes(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateFileContent(@PathParam("id") String fileId, String newContent) {
+        authenticate();
+        File file = fileEditService.findFileById(fileId);
+        if (file == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        file.setContent(newContent);
+        fileEditService.saveFile(file);
+        return Response.ok("{\"status\":\"success\"}").build();
+    }
     /**
      * Returns all files from a document, zipped.
      *

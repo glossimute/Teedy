@@ -31,9 +31,6 @@ public class FileService extends AbstractScheduledService {
     private final ReferenceQueue<Path> referenceQueue = new ReferenceQueue<>();
     private final Set<TemporaryPathReference> referenceSet = new HashSet<>();
 
-    public FileService() {
-    }
-
     @Override
     protected void startUp() {
         log.info("File service starting up");
