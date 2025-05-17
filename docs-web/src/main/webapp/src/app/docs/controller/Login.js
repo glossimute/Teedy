@@ -83,13 +83,25 @@ angular.module('docs').controller('Login', function(Restangular, $scope, $rootSc
       controller: 'ModalRegisterRequest'
     }).result.then(function (requestData) {
       if (!requestData) return;
-
+  
       console.log('提交的申请数据:', requestData);
-
-      Restangular.one('userRequests').customPOST(requestData,
-          undefined,
-          undefined,
-          { 'Content-Type': 'application/json' }).then(function () {
+  
+      const formData = Object.keys(requestData)
+        .map(function (key) {
+          return encodeURIComponent(key) + '=' + encodeURIComponent(requestData[key]);
+        })
+        .join('&');
+  
+      Restangular.one('userRequests').withHttpConfig({
+        transformRequest: angular.identity // 禁用默认 JSON 序列化
+      }).customPOST(
+        formData,
+        undefined,
+        undefined,
+        {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      ).then(function () {
         console.log('申请提交成功');
         const title = $translate.instant('register_request.success_title');
         const msg = $translate.instant('register_request.success_message');
@@ -97,15 +109,13 @@ angular.module('docs').controller('Login', function(Restangular, $scope, $rootSc
         $dialog.messageBox(title, msg, btns);
       }, function (response) {
         console.error('申请提交失败:', response);
-
-        // 详细打印错误内容
         if (response && response.data) {
           console.error('错误详情：', response.data);
         }
         if (response && response.status) {
           console.error('HTTP状态码：', response.status);
         }
-
+  
         const title = $translate.instant('register_request.error_title');
         const msg = $translate.instant('register_request.error_message') + '（' + response.status + '）';
         const btns = [{result: 'ok', label: $translate.instant('ok'), cssClass: 'btn-primary'}];
@@ -113,5 +123,6 @@ angular.module('docs').controller('Login', function(Restangular, $scope, $rootSc
       });
     });
   };
+  
 
 });
